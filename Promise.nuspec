@@ -1,0 +1,18 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+	<metadata>
+		<id>$Name$</id>
+		<version>$Version$</version>
+		<authors>pragmatrix</authors>
+		<owners>pragmatrix</owners>
+		<projectUrl>https://github.com/pragmatrix/Promise</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Generic Promises for TypeScript</description>
+		<tags>promises promise futures async-programming asynchronous callbacks typescript</tags>
+		<dependencies>
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="Promise.ts" target="Scripts/" />
+	</files>
+</package>
