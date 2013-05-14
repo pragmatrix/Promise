@@ -1,9 +1,114 @@
+/**
+	Module P: Generic Promises for TypeScript
+*/
+
 module P {
+
+	/**
+		Create a new "Deferred", which is a Promise may be resolved or rejected.
+	*/
+
+	export function defer<Value>(): Deferred<Value>
+	{
+		return new DeferredI<Value>();
+	}
+
+	/**
+		The status of a Promise. Initially a Promise is Unfulfilled and may
+		change to Rejected or Resolved.
+	 
+		Once a promise is either Rejected or Resolved, it can not change it's 
+		status anymore.
+	*/
+
 	export enum Status {
 		Unfulfilled,
 		Rejected,
 		Resolved
 	}
+
+	/**
+		If a promise gets rejected, at least an message that indicates the error or
+		reason for the rejection must be provided.
+	*/
+
+	interface Rejection
+	{
+		message: string;
+	}
+
+	/**
+		Both Promise<T> and Deferred<T> share these properties.
+	*/
+
+	interface DeferredOrPromise<Value>
+	{
+		/// The current status of the promise.
+		status: Status;
+
+		/// If the promise got resolved, the result of the promise.
+		result?: Value;
+
+		/// If the promise got rejected, the rejection message.
+		error?: Rejection;
+	}
+
+	/**
+		A Promise<Value> supports basic composition and the registration of handlers that are called when the 
+		promise is fulfilled.
+
+		When multiple handlers are registered with done(), fail(), or always(), they are called in the 
+		same order as they were registered.
+	*/
+
+	export interface Promise<Value> extends DeferredOrPromise<Value>
+	{
+		/// Chain a promise after this promise and return a new promise that represents
+		/// the chain.
+		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>;
+		/// Convert the resulting value if the promise gets resolved and return a new
+		/// promise that represents the converted result.
+		convert<T2>(f: (v: Value) => T2): Promise<T2>;
+
+		/// Add a handler that is called when the promise gets resolved.
+		done(f: (v: Value) => void ): Promise<Value>;
+		/// Add a handler that is called when the promise gets rejected.
+		fail(f: (err: Rejection) => void ): Promise<Value>;
+		/// Add a handler that is called when the promise gets fulfilled (either resolved or rejected).
+		always(f: (v?: Value, err?: Rejection) => void ): Promise<Value>;
+	}
+
+	/**
+		Deferred<Value> supports the explicit resolving and rejecting of the 
+		promise and the registration of fulfillment handlers.
+
+		A Deferred<Value> should be only visible to the function that initially sets up
+		an asynchronous process. Callers of that function should only use the Promise<Value> that
+		is returned by promise().
+	*/
+
+	export interface Deferred<Value> extends DeferredOrPromise<Value>
+	{
+		/// Returns the encapsulated promise of this deferred instance.
+		/// The returned promise supports composition but removes the ability to resolve or reject
+		/// the promise.
+		promise(): Promise<Value>;
+
+		/// Resolve this promise.
+		resolve(result: Value);
+		/// Reject this promise.
+		reject(err: { message: string });
+
+		done(f: (v: Value) => void ): Deferred<Value>;
+		fail(f: (err: Rejection) => void ): Deferred<Value>;
+		always(f: (v?: Value, err?: Rejection) => void ): Deferred<Value>;
+	}
+
+	/**
+		Creates a promise that gets resolved at the time all the Promises in the argument list get resolved.
+		And as soon one of the arguments gets rejected, the resulting Promise gets rejected.
+		If no promises were provided, the resulting promise is immediately resolved.
+	*/
 
 	export function when(...promises: Promise[]): Promise<any[]>
 	{
@@ -32,43 +137,11 @@ module P {
 		return allDone.promise();
 	}
 
-	export function defer<Value>(): Deferred<Value>
-	{
-		return new DeferredI<Value>();
-	}
+	/**
+		Implementation of a promise.
 
-	export interface ErrorMessage
-	{
-		message: string;
-	}
-
-	export interface DeferredOrPromise<Value>
-	{
-		status: Status;
-		result?: Value;
-		error?: ErrorMessage;
-	}
-
-	export interface Promise<Value> extends DeferredOrPromise<Value>
-	{
-		done(f: (v: Value) => void ): Promise<Value>;
-		fail(f: (err: ErrorMessage) => void ): Promise<Value>;
-		always(f: (v?: Value, err?: ErrorMessage) => void ): Promise<Value>;
-
-		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>;
-		convert<T2>(f: (v: Value) => T2): Promise<T2>;
-	}
-
-	export interface Deferred<Value> extends DeferredOrPromise<Value>
-	{
-		done(f: (v: Value) => void ): Deferred<Value>;
-		fail(f: (err: ErrorMessage) => void ): Deferred<Value>;
-		always(f: (v?: Value, err?: ErrorMessage) => void ): Deferred<Value>;
-
-		resolve(result: Value);
-		reject(err: ErrorMessage);
-		promise() : Promise<Value>;
-	}
+		The Promise<Value> implementation is implemented as proxy to the Deferred<Value> instance.
+	*/
 
 	class PromiseI<Value> implements Promise<Value>
 	{
@@ -77,17 +150,17 @@ module P {
 
 		get status(): Status { return this.deferred.status; }
 		get result(): Value { return this.deferred.result; }
-		get error(): ErrorMessage { return this.deferred.error; }
+		get error(): Rejection { return this.deferred.error; }
 
 		done(f: (v: Value) => void ): Promise<Value> {
 			this.deferred.done(f);
 			return this;
 		}
-		fail(f: (err: ErrorMessage) => void ): Promise<Value> {
+		fail(f: (err: Rejection) => void ): Promise<Value> {
 			this.deferred.fail(f);
 			return this;
 		}
-		always(f: (v?: Value, err?: ErrorMessage) => void ): Promise<Value> {
+		always(f: (v?: Value, err?: Rejection) => void ): Promise<Value> {
 			this.deferred.always(f);
 			return this;
 		}
@@ -101,14 +174,18 @@ module P {
 		}
 	}
 
+	/**
+		Implementation of a deferred.
+	*/
+
 	class DeferredI<Value> implements Deferred<Value>{
 
 		private _resolved: (v: Value) => void = _ => { };
-		private _rejected: (err:ErrorMessage) => void = _ => { };
+		private _rejected: (err: Rejection) => void = _ => { };
 
 		private _status: Status = Status.Unfulfilled;
 		private _result: Value;
-		private _error: ErrorMessage = { message: "" };
+		private _error: Rejection = { message: "" };
 		private _promise: Promise<Value>;
 
 		constructor() {
@@ -127,11 +204,11 @@ module P {
 			return this._result;
 		}
 
-		get error(): ErrorMessage{
+		get error(): Rejection {
 			return this._error;
 		}
 
-		then<T2>(f: (v:Value) => Promise<T2>): Promise<T2>
+		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>
 		{
 			var d = defer<Value>();
 
@@ -148,7 +225,7 @@ module P {
 			return d.promise();
 		}
 
-		convert<T2>(f: (v:Value) => T2) : Promise<T2>
+		convert<T2>(f: (v: Value) => T2): Promise<T2>
 		{
 			var d = defer<T>();
 
@@ -159,7 +236,7 @@ module P {
 			return d.promise();
 		}
 
-		done(f: (v:Value) => void ): Deferred<Value>
+		done(f: (v: Value) => void ): Deferred<Value>
 		{
 			if (this.status === Status.Resolved) {
 				f(this._result);
@@ -175,7 +252,7 @@ module P {
 			return this;
 		}
 
-		fail(f: (err: ErrorMessage) => void ) : Deferred<Value>
+		fail(f: (err: Rejection) => void ): Deferred<Value>
 		{
 			if (this.status === Status.Rejected) {
 				f(this._error);
@@ -191,11 +268,11 @@ module P {
 			return this;
 		}
 
-		always(f: (v?:Value, err?:ErrorMessage) => void ) : Deferred<Value>
+		always(f: (v?: Value, err?: Rejection) => void ): Deferred<Value>
 		{
 			this
 				.done(v => f(v))
-				.fail(v => f(null, v));
+				.fail(err => f(null, err));
 
 			return this;
 		}
@@ -211,7 +288,7 @@ module P {
 			this.detach();
 		}
 
-		reject(err: ErrorMessage) {
+		reject(err: Rejection) {
 			if (this._status !== Status.Unfulfilled)
 				throw new Error("tried to reject a fulfilled promise");
 
