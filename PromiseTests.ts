@@ -29,7 +29,6 @@ module PromiseTests {
 	{
 		var d = defer<number>();
 		d.resolve(0);
-
 		throws(() =>
 		{
 			d.resolve(1);
@@ -171,9 +170,9 @@ module PromiseTests {
 	test("then receives the value", () =>
 	{
 		var d = defer<number>();
-		var d2 = d.then(n => {
+		var d2 = d.promise().then(n => {
 			ok(n === 10);
-			return defer<number>();
+			return defer<number>().promise();
 		});
 
 		d.resolve(10);
@@ -184,11 +183,11 @@ module PromiseTests {
 		expect(2);
 
 		var d = defer<number>();
-		var p = d.then(n => {
+		var p = d.promise().then(n => {
 			ok(n === 10);
 			var d2 = defer<number>();
 			d2.resolve(4);
-			return d2;
+			return d2.promise();
 		} );
 
 		d.resolve(10);
@@ -212,7 +211,7 @@ module PromiseTests {
 		var d = defer<number>();
 		var d2 = defer<bool>();
 
-		var p = when(d, d2);
+		var p = when(d.promise(), d2.promise());
 		p.done(v =>
 		{
 			ok(v.length === 2);
@@ -229,7 +228,7 @@ module PromiseTests {
 		var d = defer<number>();
 		var d2 = defer<bool>();
 
-		var p = when(d, d2);
+		var p = when(d.promise(), d2.promise());
 		p.fail(err =>
 		{
 			ok(true);
@@ -243,7 +242,7 @@ module PromiseTests {
 		var d = defer<number>();
 		var d2 = defer<bool>();
 
-		var p = when(d, d2);
+		var p = when(d.promise(), d2.promise());
 		p.fail(err =>
 		{
 			ok(true);

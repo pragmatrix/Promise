@@ -10,7 +10,7 @@ module P {
 		var allDone = defer<any[]>();
 		if (!promises.length) {
 			allDone.resolve([]);
-			return allDone;
+			return allDone.promise();
 		}
 
 		var resolved = 0;
@@ -29,12 +29,12 @@ module P {
 				} );
 		} );
 
-		return allDone;
+		return allDone.promise();
 	}
 
-	export function defer<T>(): Deferred<T>
+	export function defer<Value>(): Deferred<Value>
 	{
-		return new Deferred<T>();
+		return new DeferredI<Value>();
 	}
 
 	export interface ErrorMessage
@@ -42,38 +42,88 @@ module P {
 		message: string;
 	}
 
-	export interface Promise<T>
+	export interface DeferredOrPromise<Value>
 	{
-		then<T2>(f: (v: T) => Promise<T2>): Promise<T2>;
-		convert<T2>(f: (v: T) => T2): Promise<T2>;
-
-		done(f: (v: T) => void ): Promise<T>;
-		fail(f: (err: ErrorMessage) => void ): Promise<T>;
-		always(f: (v?: T, err?: ErrorMessage) => void ): Promise<T>;
-
 		status: Status;
-		result?: T;
+		result?: Value;
 		error?: ErrorMessage;
 	}
 
-	export class Deferred<T> implements Promise<T>{
+	export interface Promise<Value> extends DeferredOrPromise<Value>
+	{
+		done(f: (v: Value) => void ): Promise<Value>;
+		fail(f: (err: ErrorMessage) => void ): Promise<Value>;
+		always(f: (v?: Value, err?: ErrorMessage) => void ): Promise<Value>;
 
-		private _resolved: (v: T) => void = _ => { };
+		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>;
+		convert<T2>(f: (v: Value) => T2): Promise<T2>;
+	}
+
+	export interface Deferred<Value> extends DeferredOrPromise<Value>
+	{
+		done(f: (v: Value) => void ): Deferred<Value>;
+		fail(f: (err: ErrorMessage) => void ): Deferred<Value>;
+		always(f: (v?: Value, err?: ErrorMessage) => void ): Deferred<Value>;
+
+		resolve(result: Value);
+		reject(err: ErrorMessage);
+		promise() : Promise<Value>;
+	}
+
+	class PromiseI<Value> implements Promise<Value>
+	{
+		constructor(private deferred: DeferredI<Value>)
+		{ }
+
+		get status(): Status { return this.deferred.status; }
+		get result(): Value { return this.deferred.result; }
+		get error(): ErrorMessage { return this.deferred.error; }
+
+		done(f: (v: Value) => void ): Promise<Value> {
+			this.deferred.done(f);
+			return this;
+		}
+		fail(f: (err: ErrorMessage) => void ): Promise<Value> {
+			this.deferred.fail(f);
+			return this;
+		}
+		always(f: (v?: Value, err?: ErrorMessage) => void ): Promise<Value> {
+			this.deferred.always(f);
+			return this;
+		}
+
+		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2> {
+			return this.deferred.then(f);
+		}
+
+		convert<T2>(f: (v: Value) => T2): Promise<T2> {
+			return this.deferred.convert(f);
+		}
+	}
+
+	class DeferredI<Value> implements Deferred<Value>{
+
+		private _resolved: (v: Value) => void = _ => { };
 		private _rejected: (err:ErrorMessage) => void = _ => { };
 
 		private _status: Status = Status.Unfulfilled;
-		private _result: T;
+		private _result: Value;
 		private _error: ErrorMessage = { message: "" };
+		private _promise: Promise<Value>;
 
-		promise(): Promise<T> {
-			return this;
+		constructor() {
+			this._promise = new PromiseI<Value>(this);
+		}
+
+		promise(): Promise<Value> {
+			return this._promise;
 		}
 
 		get status(): Status {
 			return this._status;
 		}
 
-		get result(): T {
+		get result(): Value {
 			return this._result;
 		}
 
@@ -81,9 +131,9 @@ module P {
 			return this._error;
 		}
 
-		then<T2>(f: (v:T) => Promise<T2>): Promise<T2>
+		then<T2>(f: (v:Value) => Promise<T2>): Promise<T2>
 		{
-			var d = defer<T>();
+			var d = defer<Value>();
 
 			this
 				.done(v =>
@@ -95,10 +145,10 @@ module P {
 				} )
 				.fail(d.reject);
 
-			return d;
+			return d.promise();
 		}
 
-		convert<T2>(f: (v:T) => T2) : Promise<T2>
+		convert<T2>(f: (v:Value) => T2) : Promise<T2>
 		{
 			var d = defer<T>();
 
@@ -106,10 +156,10 @@ module P {
 				.done(v => d.resolve(f(v)))
 				.fail(d.reject);
 
-			return d;
+			return d.promise();
 		}
 
-		done(f: (v:T) => void ): Promise<T>
+		done(f: (v:Value) => void ): Deferred<Value>
 		{
 			if (this.status === Status.Resolved) {
 				f(this._result);
@@ -125,7 +175,7 @@ module P {
 			return this;
 		}
 
-		fail(f: (err: ErrorMessage) => void ) : Promise<T>
+		fail(f: (err: ErrorMessage) => void ) : Deferred<Value>
 		{
 			if (this.status === Status.Rejected) {
 				f(this._error);
@@ -141,7 +191,7 @@ module P {
 			return this;
 		}
 
-		always(f: (v?:T, err?:ErrorMessage) => void ) : Promise<T>
+		always(f: (v?:Value, err?:ErrorMessage) => void ) : Deferred<Value>
 		{
 			this
 				.done(v => f(v))
@@ -150,7 +200,7 @@ module P {
 			return this;
 		}
 
-		resolve(result: T) {
+		resolve(result: Value) {
 			if (this._status !== Status.Unfulfilled)
 				throw new Error("tried to resolve a fulfilled promise");
 
