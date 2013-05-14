@@ -32,7 +32,7 @@ module P {
 		reason for the rejection must be provided.
 	*/
 
-	interface Rejection
+	export interface Rejection
 	{
 		message: string;
 	}
@@ -97,7 +97,7 @@ module P {
 		/// Resolve this promise.
 		resolve(result: Value);
 		/// Reject this promise.
-		reject(err: { message: string });
+		reject(err: Rejection);
 
 		done(f: (v: Value) => void ): Deferred<Value>;
 		fail(f: (err: Rejection) => void ): Deferred<Value>;
