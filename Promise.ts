@@ -140,7 +140,7 @@ module P {
 	/**
 		Implementation of a promise.
 
-		The Promise<Value> implementation is implemented as proxy to the Deferred<Value> instance.
+		The Promise<Value> instance is a proxy to the Deferred<Value> instance.
 	*/
 
 	class PromiseI<Value> implements Promise<Value>
@@ -210,7 +210,7 @@ module P {
 
 		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>
 		{
-			var d = defer<Value>();
+			var d = defer<T2>();
 
 			this
 				.done(v =>
@@ -227,7 +227,7 @@ module P {
 
 		convert<T2>(f: (v: Value) => T2): Promise<T2>
 		{
-			var d = defer<T>();
+			var d = defer<T2>();
 
 			this
 				.done(v => d.resolve(f(v)))
