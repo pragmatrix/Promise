@@ -5,7 +5,7 @@
 module P {
 
 	/**
-		Create a new "Deferred", which is a Promise may be resolved or rejected.
+		Create a new "Deferred" value that may be resolved or rejected.
 	*/
 
 	export function defer<Value>(): Deferred<Value>
@@ -17,7 +17,7 @@ module P {
 		The status of a Promise. Initially a Promise is Unfulfilled and may
 		change to Rejected or Resolved.
 	 
-		Once a promise is either Rejected or Resolved, it can not change it's 
+		Once a promise is either Rejected or Resolved, it can not change its 
 		status anymore.
 	*/
 
@@ -28,7 +28,7 @@ module P {
 	}
 
 	/**
-		If a promise gets rejected, at least an message that indicates the error or
+		If a promise gets rejected, at least a message that indicates the error or
 		reason for the rejection must be provided.
 	*/
 
@@ -54,20 +54,32 @@ module P {
 	}
 
 	/**
-		A Promise<Value> supports basic composition and the registration of handlers that are called when the 
+		A Promise<Value> supports basic composition and registration of handlers that are called when the 
 		promise is fulfilled.
 
 		When multiple handlers are registered with done(), fail(), or always(), they are called in the 
-		same order as they were registered.
+		same order.
 	*/
 
 	export interface Promise<Value> extends DeferredOrPromise<Value>
 	{
-		/// Chain a promise after this promise and return a new promise that represents
-		/// the chain.
+		/**
+			Returns a promise that represents a promise chain that consists of this
+			promise and the promise that is returned by the function provided.
+			The function receives the value of this promise as soon it is resolved.
+			
+			If this promise fails, the function is never called and the returned promise 
+			will also fail.
+		*/
 		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>;
-		/// Convert the resulting value if the promise gets resolved and return a new
-		/// promise that represents the converted result.
+		/**
+			Returns a promise that represents the result of a value conversion. The value
+			converter is called as soon this promise resolves. As soon value converter returns
+			the returned promise gets resolved.
+		
+			If this promise fails, the value converter is never called and the returned promise 
+			will also fail.
+		*/
 		convert<T2>(f: (v: Value) => T2): Promise<T2>;
 
 		/// Add a handler that is called when the promise gets resolved.
@@ -83,7 +95,7 @@ module P {
 		promise and the registration of fulfillment handlers.
 
 		A Deferred<Value> should be only visible to the function that initially sets up
-		an asynchronous process. Callers of that function should only use the Promise<Value> that
+		an asynchronous process. Callers of that function should only see the Promise<Value> that
 		is returned by promise().
 	*/
 
@@ -105,8 +117,8 @@ module P {
 	}
 
 	/**
-		Creates a promise that gets resolved at the time all the Promises in the argument list get resolved.
-		And as soon one of the arguments gets rejected, the resulting Promise gets rejected.
+		Creates a promise that gets resolved at the time all the promises in the argument list get resolved.
+		As soon one of the arguments gets rejected, the resulting promise gets rejected.
 		If no promises were provided, the resulting promise is immediately resolved.
 	*/
 
