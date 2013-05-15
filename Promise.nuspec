@@ -7,8 +7,8 @@
 		<owners>pragmatrix</owners>
 		<projectUrl>https://github.com/pragmatrix/Promise</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>Generic Promises for TypeScript</description>
-		<tags>promises promise futures async-programming asynchronous callbacks typescript</tags>
+		<description>Generic Promises for TypeScript 0.9 alpha</description>
+		<tags>promises promise futures async-programming asynchronous async callbacks typescript</tags>
 		<dependencies>
 		</dependencies>
 	</metadata>
