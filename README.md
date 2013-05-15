@@ -1,30 +1,28 @@
 ## A Generic Promise implementation for TypeScript
 
-Promises are a concept to structure asynchronous program and avoid callback hell. While they are not as full featured like Rx for example, they are attractive because their implementation is rather simple.
+Promises are used to structure asynchronous programs and to avoid callback hell. While they are not as full featured like [Rx](https://github.com/Reactive-Extensions/RxJS) for example, they are attractive because their implementation is rather simple.
 
 ### Installing Promise.ts
 
 Assuming that you are using Visual Studio,
 
-	- [install the nuget package](http://nuget.org/packages/Promise.TypeScript/).
+- [install the nuget package](http://nuget.org/packages/Promise.TypeScript/).
 
-	- Then refer the Promise.ts file like:
+- Then refer the Promise.ts file like:
 
-		/// <reference path="Scripts/Promise.ts"/>
+	/// <reference path="Scripts/Promise.ts"/>
 
-	- and then pollute the global scope a little:
+- and then pollute the global scope a little:
 
-		var defer = P.defer;
-		var when = P.when;
-		interface Promise<Value> extends P.Promise<Value> {}
+	var defer = P.defer;
+	var when = P.when;
+	interface Promise<Value> extends P.Promise<Value> {}
 
-To avoid putting the above code before into every TypeScript file, it's possible to put the reference and the aliases into your main application or module file that is then referenced from all other files. 
-	
 ### Using Promise.ts
 
 #### Creating Functions that return Promises
 
-The pattern for creating promises is as follows: First a so called deferred is created to represent a precursor to a promise, then the deferred instance is bound to the callbacks, and then it returns the promise which can then be composed by the caller.
+The pattern for creating promises is as follows: First a "deferred" is created that represent a precursor to a promise, then the deferred is bound to the callbacks, and then it returns the promise which may then be composed by the caller.
 
 For example:
 	
@@ -51,7 +49,7 @@ The function above starts the reading operation and returns a promise that repre
 
 #### Composing Promises
 
-The returned promise can now be composed with other methods that return promises:
+The promise returned by `readBlob()` can now be composed with other functions that return promises:
 
 	readBlob(blob).then(bytes => writeFile("name", bytes));
 
@@ -59,7 +57,7 @@ While `then` always expects a `Promise<>` return type, `thenConvert` does not:
 
 	readBlob(blob).thenConvert(bytes => bytes.reverse());
 
-returns a promise that represents the reading of the block and the reversing of the read bytes. The returned promise gets resolved as soon the conversion function finishes.
+returns a promise that represents the read operation of the block and the reversing of its binary content. The returned promise gets resolved as soon the conversion function finishes.
 
 Starting parallel processes is also straightforward:
 
@@ -73,9 +71,9 @@ Note that it is also possible to retrieve the result directly from the `blobRead
 
 	var f1 = blobReader.then(() => writeFile("name1", blobReader.result));
 	
-.. which could simplify some more complex composition scenarios.
+.. which may simplify complex composition scenarios.
 
-And when we need to bring them together, the `when` combinator takes a number of promises and returns one that resolves when all promises are resolved:
+And when we need to join the results together, the `when` combinator takes a number of promises and returns one that resolves when all its arguments are resolved:
 
 	when(f1, f2).then(() => commitToDatabaseThatAllFilesAreWritten());
 
@@ -97,7 +95,7 @@ registers a handler that is called when the promise is rejected.
 
 registers a handler that is called when either the promise is resolved or rejected.
 
-When multiple handlers of the same kinds are registered at the same promise, they are all called in their registration order.
+When multiple handlers of the same kind are registered, they are called in their registration order.
 
 ### Ideas
 
@@ -105,16 +103,17 @@ When multiple handlers of the same kinds are registered at the same promise, the
 - Instead of `any[]`, use Tuples for the return type of `when()`. Because TypeScript does not have a standard library, someone needs to create `Tuple<>` types. BTW: What about creating a standard library that can be distributed as a number of nuget packages similar to the [DefinitelyTyped](https://github.com/borisyankov/DefinitelyTyped) repository? 
 - Some looping or recursing construct that avoids eating stack space. The [recur special form](http://clojure.org/special_forms#recur) in Clojure looks like a good idea to start from.
 - Progress notifications anyone?
+- Exception handling.
 
 ### Roadmap
 
-I built this Promise implementation, because I am planning a fairly large TypeScript project that requires a lot of asynchronous coordination. So I will try to push this forward over the next few weeks and will probably extend it beyond what existing Promise implementations have to offer. 
+I build this Promise implementation because I am planning a fairly large TypeScript project that requires a lot of asynchronous coordination. So I will try to push this forward over the next few weeks and will probably extend it beyond what existing Promise implementations have to offer. 
 
 But of course, the ultimate feature limiter will always be simplicitly.
 
 ### Design & Implementation Details
 
-I've decided to make it a bit harder to compose deferreds by not adding the composition methods to the `Deferred<Value>` interface. This makes the implementation simpler and has the additional advantage that implementors need to think and explicitly call promise() before they can starting composing.
+I've decided to make it a bit harder to compose deferreds by not adding the composition methods to the `Deferred<Value>` interface. This makes the implementation simpler and has the additional advantage that implementors need to think and explicitly call `promise()` before they can start composing.
 
 I've decided against all exception handling for now, because I have never used promises before and don't know what exactly programmers would expect. Obviously this might change for a future version.
 
