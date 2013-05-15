@@ -12,11 +12,12 @@ Assuming that you are using Visual Studio, have [TypeScript 0.9 alpha](https://t
 
 		/// <reference path="Scripts/Promise.ts"/>
 
-- and then pollute the global scope a little:
+- and in your module:
 
-		var defer = P.defer;
-		var when = P.when;
-		interface Promise<Value> extends P.Promise<Value> {}
+		export var defer = P.defer;
+		export var when = P.when;
+		export var promise = P.promise;
+		export interface Promise<Value> extends P.Promise<Value> {}
 
 ### Using Promise.ts
 
