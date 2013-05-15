@@ -7,12 +7,21 @@
 module P {
 
 	/**
-		Create a new "Deferred" value that may be resolved or rejected.
+		Returns a new "Deferred" value that may be resolved or rejected.
 	*/
 
 	export function defer<Value>(): Deferred<Value>
 	{
 		return new DeferredI<Value>();
+	}
+
+	/**
+		Returns a resolved promise.
+	*/
+
+	export function promise<Value>(v: Value): Promise<Value>
+	{
+		return defer<Value>().resolve(v).promise();
 	}
 
 	/**
@@ -82,7 +91,7 @@ module P {
 			If this promise fails, the value converter is never called and the returned promise 
 			will also fail.
 		*/
-		convert<T2>(f: (v: Value) => T2): Promise<T2>;
+		thenConvert<T2>(f: (v: Value) => T2): Promise<T2>;
 
 		/// Add a handler that is called when the promise gets resolved.
 		done(f: (v: Value) => void ): Promise<Value>;
@@ -183,8 +192,8 @@ module P {
 			return this.deferred.then(f);
 		}
 
-		convert<T2>(f: (v: Value) => T2): Promise<T2> {
-			return this.deferred.convert(f);
+		thenConvert<T2>(f: (v: Value) => T2): Promise<T2> {
+			return this.deferred.thenConvert(f);
 		}
 	}
 
@@ -239,7 +248,7 @@ module P {
 			return d.promise();
 		}
 
-		convert<T2>(f: (v: Value) => T2): Promise<T2>
+		thenConvert<T2>(f: (v: Value) => T2): Promise<T2>
 		{
 			var d = defer<T2>();
 
