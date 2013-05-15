@@ -5,6 +5,7 @@ module PromiseTests {
 
 	var defer = P.defer;
 	var when = P.when;
+	var promise = P.promise;
 	interface Promise<T> extends P.Promise<T> {}
 
 	// state
@@ -249,6 +250,57 @@ module PromiseTests {
 		} );
 
 		d2.reject({ message: "nana" });
+	} );
+
+	// result / error
+
+	test("accessing the result property of a resolved promise does not throw", () =>
+	{
+		var p = promise(1);
+		ok(1 === p.result);
+	} );
+
+	test("accessing the result of an unfulfilled or rejected promise throws", () =>
+	{
+		var d = defer<number>();
+		var p = d.promise();
+		throws(() =>
+		{
+			p.result;
+		} );
+
+		d.reject({ message: "no!" });
+
+		throws(() =>
+		{
+			p.result;
+		} );
+	} );
+
+	
+	test("accessing the error property of a rejected promise does not throw", () =>
+	{
+		var d = defer<number>();
+		d.reject({ message: "rejected" });
+
+		ok(d.error.message === "rejected");
+	} );
+
+	test("accessing the error property of an unfulfilled or resolved promise throws", () =>
+	{
+		var d = defer<number>();
+		var p = d.promise();
+		throws(() =>
+		{
+			p.error;
+		} );
+
+		d.resolve(1);
+
+		throws(() =>
+		{
+			p.error;
+		} );
 	} );
 
 }

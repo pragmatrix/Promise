@@ -117,10 +117,10 @@ module P {
 		/// the promise.
 		promise(): Promise<Value>;
 
-		/// Resolve this promise.
-		resolve(result: Value);
-		/// Reject this promise.
-		reject(err: Rejection);
+		/// Resolve the promise.
+		resolve(result: Value) : Deferred<Value>;
+		/// Reject the promise.
+		reject(err: Rejection) : Deferred<Value>;
 
 		done(f: (v: Value) => void ): Deferred<Value>;
 		fail(f: (err: Rejection) => void ): Deferred<Value>;
@@ -224,10 +224,14 @@ module P {
 		}
 
 		get result(): Value {
+			if (this._status != Status.Resolved)
+				throw new Error("Promise: result not available");
 			return this._result;
 		}
 
 		get error(): Rejection {
+			if (this._status != Status.Rejected)
+				throw new Error("Promise: rejection reason not available");
 			return this._error;
 		}
 
@@ -309,6 +313,7 @@ module P {
 			this._resolved(result);
 
 			this.detach();
+			return this;
 		}
 
 		reject(err: Rejection) {
@@ -320,6 +325,7 @@ module P {
 			this._rejected(err);
 
 			this.detach();
+			return this;
 		}
 
 		private detach()
