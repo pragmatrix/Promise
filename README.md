@@ -38,7 +38,7 @@ For example:
 			d.reject({ message: "aborted" });
 		}
 		reader.onloadend = () => {
-			d.resolve(this.reader.result);
+			d.resolve(reader.result);
 		}
 
 		reader.readAsArrayBuffer(blob);
