@@ -36,7 +36,7 @@ module P {
 	*/
 
 	export function unfold<Seed, Element>(
-		unspool: (current: Seed) => { promise: Promise<Element>; next?: Value },
+		unspool: (current: Seed) => { promise: Promise<Element>; next?: Seed },
 		seed: Seed)
 		: Promise<Element[]>
 	{
@@ -55,6 +55,10 @@ module P {
 		seed: Seed) : void
 	{
 		var result = unspool(seed);
+		if (!result) {
+			deferred.resolve(elements);
+			return;
+		}
 
 		// fastpath: don't waste stack space if promise resolves immediately.
 		
@@ -62,6 +66,10 @@ module P {
 		{
 			elements.push(result.promise.result);
 			result = unspool(result.next);
+			if (!result) {
+				deferred.resolve(elements);
+				return;
+			}
 		}
 
 		result.promise
