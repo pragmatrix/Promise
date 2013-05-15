@@ -10,13 +10,13 @@ Assuming that you are using Visual Studio,
 
 - Then refer the Promise.ts file like:
 
-	/// <reference path="Scripts/Promise.ts"/>
+		/// <reference path="Scripts/Promise.ts"/>
 
 - and then pollute the global scope a little:
 
-	var defer = P.defer;
-	var when = P.when;
-	interface Promise<Value> extends P.Promise<Value> {}
+		var defer = P.defer;
+		var when = P.when;
+		interface Promise<Value> extends P.Promise<Value> {}
 
 ### Using Promise.ts
 
