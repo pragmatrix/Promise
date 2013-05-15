@@ -43,7 +43,7 @@ module P {
 		Both Promise<T> and Deferred<T> share these properties.
 	*/
 
-	interface DeferredOrPromise<Value>
+	interface PromiseState<Value>
 	{
 		/// The current status of the promise.
 		status: Status;
@@ -63,7 +63,7 @@ module P {
 		same order.
 	*/
 
-	export interface Promise<Value> extends DeferredOrPromise<Value>
+	export interface Promise<Value> extends PromiseState<Value>
 	{
 		/**
 			Returns a promise that represents a promise chain that consists of this
@@ -101,7 +101,7 @@ module P {
 		is returned by promise().
 	*/
 
-	export interface Deferred<Value> extends DeferredOrPromise<Value>
+	export interface Deferred<Value> extends PromiseState<Value>
 	{
 		/// Returns the encapsulated promise of this deferred instance.
 		/// The returned promise supports composition but removes the ability to resolve or reject
