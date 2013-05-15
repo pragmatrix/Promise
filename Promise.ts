@@ -24,6 +24,61 @@ module P {
 		return defer<Value>().resolve(v).promise();
 	}
 
+
+	/**
+		http://en.wikipedia.org/wiki/Anamorphism
+
+		Given a seed value, unfold calls the unspool function, waits for the returned promise to be resolved, and then 
+		calls it again if a next seed value was returned.
+
+		All the values of all promise results are collected into the resulting promise which is resolved as soon
+		the last generated element value is resolved.
+	*/
+
+	export function unfold<Seed, Element>(
+		unspool: (current: Seed) => { promise: Promise<Element>; next?: Value },
+		seed: Seed)
+		: Promise<Element[]>
+	{
+		var d = defer<Partial[]>();
+		var elements : Element[] = [];
+
+		unfoldCore(elements, d, unspool, seed)
+
+		return d.promise();
+	}
+
+	function unfoldCore<Seed, Element>(
+		elements: Element[],
+		deferred: Deferred<Element[]>,
+		unspool: (current: Seed) => { promise: Promise<Element>; next?: Seed },
+		seed: Seed) : void
+	{
+		var result = unspool(seed);
+
+		// fastpath: don't waste stack space if promise resolves immediately.
+		
+		while (result.next && result.promise.status == P.Status.Resolved)
+		{
+			elements.push(result.promise.result);
+			result = unspool(result.next);
+		}
+
+		result.promise
+			.done(v =>
+			{
+				elements.push(v);
+				if (!result.next)
+					deferred.resolve(elements);
+				else
+					unfoldCore(elements, deferred, unspool, result.next);
+			} )
+			.fail(e =>
+			{
+				deferred.reject(e);
+			} );
+	}
+
 	/**
 		The status of a Promise. Initially a Promise is Unfulfilled and may
 		change to Rejected or Resolved.
