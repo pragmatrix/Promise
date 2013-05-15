@@ -1,5 +1,7 @@
 /**
 	Module P: Generic Promises for TypeScript
+
+	Project, documentation, and license: https://github.com/pragmatrix/Promise
 */
 
 module P {
