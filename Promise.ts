@@ -16,10 +16,10 @@ module P {
 	}
 
 	/**
-		Returns a resolved promise.
+		Converts a value to a resolved promise.
 	*/
 
-	export function resolve<Value>(v: Value): Promise<Value>
+	export function resolve<Value>(v: Value = {}): Promise<Value>
 	{
 		return defer<Value>().resolve(v).promise();
 	}
@@ -316,9 +316,9 @@ module P {
 					var p2 = f(v);
 					p2
 						.done(v2 => d.resolve(v2))
-						.fail(d.reject);
+						.fail(err => d.reject(err));
 				} )
-				.fail(d.reject);
+				.fail(err => d.reject(err));
 
 			return d.promise();
 		}
@@ -329,7 +329,7 @@ module P {
 
 			this
 				.done(v => d.resolve(f(v)))
-				.fail(d.reject);
+				.fail(err => d.reject(err));
 
 			return d.promise();
 		}

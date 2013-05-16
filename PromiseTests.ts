@@ -194,6 +194,55 @@ module PromiseTests {
 		p.done(n => ok(n === 4));
 	} );
 
+
+	test("then: first rejected: first and outer fails", () =>
+	{
+		expect(2);
+
+		var first = defer<number>();
+		var outer = first.promise().then(n => {
+			ok(false);
+			return defer<number>().promise();
+		} );
+
+		first.fail(err =>
+		{
+			ok(true);
+		} );
+
+		outer.fail(err =>
+		{
+			ok(true);
+		} );
+
+		first.reject({ message: "fail" });
+	} );
+
+	test("then: first resolved and second rejected: second fails and outer fails", () =>
+	{
+		expect(2);
+
+		var first = defer<number>();
+		var second = defer<number>();
+
+		var outer = first.promise().then(n => {
+			return second.promise();
+		} );
+
+		second.fail(err =>
+		{
+			ok(true);
+		} );
+
+		outer.fail(err =>
+		{
+			ok(true);
+		} );
+
+		first.resolve(1);
+		second.reject({ message: "fail" });
+	} );
+
 	// when
 
 	test("when no arguments given, when resolves immediately", () =>
