@@ -5,7 +5,6 @@ module PromiseTests {
 
 	var defer = P.defer;
 	var when = P.when;
-	var promise = P.promise;
 	interface Promise<T> extends P.Promise<T> {}
 
 	// state
@@ -256,7 +255,7 @@ module PromiseTests {
 
 	test("accessing the result property of a resolved promise does not throw", () =>
 	{
-		var p = promise(1);
+		var p = P.resolve(1);
 		ok(1 === p.result);
 	} );
 

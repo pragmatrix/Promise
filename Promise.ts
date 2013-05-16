@@ -19,11 +19,19 @@ module P {
 		Returns a resolved promise.
 	*/
 
-	export function promise<Value>(v: Value): Promise<Value>
+	export function resolve<Value>(v: Value): Promise<Value>
 	{
 		return defer<Value>().resolve(v).promise();
 	}
 
+	/**
+		Returns a rejected promise.
+	*/
+
+	export function reject<Value>(err: Rejection): Promise<Value>
+	{
+		return defer<Value>().reject(err).promise();
+	}
 
 	/**
 		http://en.wikipedia.org/wiki/Anamorphism
