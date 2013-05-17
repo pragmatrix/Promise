@@ -1,5 +1,5 @@
 id=Promise.TypeScript
-version=0.7.1-alpha
+version=0.8.0-alpha
 package=${id}.${version}.nupkg
 
 .PHONY: pushnuget
