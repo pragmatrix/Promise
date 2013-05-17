@@ -143,6 +143,11 @@ module P {
 		same order.
 	*/
 
+	interface TrickTheCompilerToAcceptMultipleThenOverloadsBelow
+	{
+		then<T2>(f): Promise<T2>;
+	}
+
 	export interface Promise<Value> extends PromiseState<Value>
 	{
 		/**
@@ -154,15 +159,7 @@ module P {
 			will also fail.
 		*/
 		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>;
-		/**
-			Returns a promise that represents the result of a value conversion. The value
-			converter is called as soon this promise resolves. As soon value converter returns
-			the returned promise gets resolved.
-		
-			If this promise fails, the value converter is never called and the returned promise 
-			will also fail.
-		*/
-		thenConvert<T2>(f: (v: Value) => T2): Promise<T2>;
+		then<T2>(f: (v: Value) => T2): Promise<T2>;
 
 		/// Add a handler that is called when the promise gets resolved.
 		done(f: (v: Value) => void ): Promise<Value>;
@@ -259,12 +256,9 @@ module P {
 			return this;
 		}
 
-		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2> {
+		then<T2>(f: (v: Value) => any): Promise<T2>
+		{
 			return this.deferred.then(f);
-		}
-
-		thenConvert<T2>(f: (v: Value) => T2): Promise<T2> {
-			return this.deferred.thenConvert(f);
 		}
 	}
 
@@ -306,29 +300,28 @@ module P {
 			return this._error;
 		}
 
-		then<T2>(f: (v: Value) => Promise<T2>): Promise<T2>
+		then(f: (v: Value) => any) : Promise<any>
 		{
 			var d = defer<T2>();
 
 			this
 				.done(v =>
 				{
-					var p2 = f(v);
-					p2
-						.done(v2 => d.resolve(v2))
-						.fail(err => d.reject(err));
+					var promiseOrValue = f(v);
+
+					// todo: need to find another way to check if r is really of interface
+					// type Promise<any>, otherwise we would not support other 
+					// implementations here.
+					if (promiseOrValue instanceof PromiseI)
+					{
+						var p = <Promise> promiseOrValue;
+							p.done(v2 => d.resolve(v2))
+							.fail(err => d.reject(err));
+						return p;
+					}
+
+					d.resolve(promiseOrValue);
 				} )
-				.fail(err => d.reject(err));
-
-			return d.promise();
-		}
-
-		thenConvert<T2>(f: (v: Value) => T2): Promise<T2>
-		{
-			var d = defer<T2>();
-
-			this
-				.done(v => d.resolve(f(v)))
 				.fail(err => d.reject(err));
 
 			return d.promise();

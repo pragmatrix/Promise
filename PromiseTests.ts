@@ -243,6 +243,20 @@ module PromiseTests {
 		second.reject({ message: "fail" });
 	} );
 
+
+	test("then: then with a resolved value calls the right overload", () =>
+	{
+		var first = defer<number>();
+		var outer = first.promise().then(v => 4);
+
+		outer.done(x =>
+		{
+			ok(x == 4);
+		} );
+
+		first.resolve(1);
+	})
+
 	// when
 
 	test("when no arguments given, when resolves immediately", () =>
