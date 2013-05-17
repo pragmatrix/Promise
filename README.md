@@ -53,13 +53,15 @@ The promise returned by `readBlob()` can now be composed with other functions th
 
 	readBlob(blob).then(bytes => writeFile("name", bytes));
 
-While `then` always expects a `Promise<>` return type, `thenConvert` does not:
+`then` also accepts regular values which act like an already resolved promise, for example
 
-	readBlob(blob).thenConvert(bytes => bytes.reverse());
+	readBlob(blob).then(bytes => bytes.reverse());
 
 returns a promise that represents the read operation of the block and the reversing of its binary content. The returned promise gets resolved as soon the conversion function finishes.
 
-Starting parallel processes is also straightforward:
+Note that the TypeScript 0.9 alpha compiler may not properly inference the type of returned value and so resorts to `Promise<any>`. A workaround is to return a `P.resolved(value)` or to type annotate the returned promise.
+
+Starting parallel processes is also straight forward:
 
 	var blobReader = readBlob(blob);
 	var f1 = blobReader.then(bytes => writeFile("name", bytes));
