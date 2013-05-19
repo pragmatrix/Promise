@@ -259,7 +259,7 @@ module PromiseTests {
 
 	// when
 
-	test("when no arguments given, when resolves immediately", () =>
+	test("when: no arguments given, when resolves immediately", () =>
 	{
 		var p = when();
 		p.done(v => {
@@ -267,7 +267,7 @@ module PromiseTests {
 		} );
 	} );
 
-	test("when all are resolved, when resolves", () =>
+	test("when: all are resolved, when resolves", () =>
 	{
 		expect(3);
 
@@ -286,7 +286,7 @@ module PromiseTests {
 		d2.resolve(true);
 	} );
 
-	test("when first fails, when fails", () =>
+	test("when: first fails, when fails", () =>
 	{
 		var d = defer<number>();
 		var d2 = defer<bool>();
@@ -300,7 +300,7 @@ module PromiseTests {
 		d.reject({ message: "nana" });
 	} );
 
-	test("when second fails, when fails", () =>
+	test("when: second fails, when fails", () =>
 	{
 		var d = defer<number>();
 		var d2 = defer<bool>();
@@ -311,6 +311,21 @@ module PromiseTests {
 			ok(true);
 		} );
 
+		d2.reject({ message: "nana" });
+	} );
+
+	test("when: both fail, when fails", () =>
+	{
+		var d = defer<number>();
+		var d2 = defer<bool>();
+
+		var p = when(d.promise(), d2.promise());
+		p.fail(err =>
+		{
+			ok(true);
+		} );
+
+		d.reject({ message: "nana" });
 		d2.reject({ message: "nana" });
 	} );
 

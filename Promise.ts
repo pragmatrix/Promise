@@ -49,7 +49,7 @@ module P {
 		: Promise<Element[]>
 	{
 		var d = defer<Partial[]>();
-		var elements : Element[] = [];
+		var elements: Element[] = [];
 
 		unfoldCore(elements, d, unspool, seed)
 
@@ -60,7 +60,7 @@ module P {
 		elements: Element[],
 		deferred: Deferred<Element[]>,
 		unspool: (current: Seed) => { promise: Promise<Element>; next?: Seed },
-		seed: Seed) : void
+		seed: Seed): void
 	{
 		var result = unspool(seed);
 		if (!result) {
@@ -69,7 +69,7 @@ module P {
 		}
 
 		// fastpath: don't waste stack space if promise resolves immediately.
-		
+
 		while (result.next && result.promise.status == P.Status.Resolved)
 		{
 			elements.push(result.promise.result);
@@ -186,9 +186,9 @@ module P {
 		promise(): Promise<Value>;
 
 		/// Resolve the promise.
-		resolve(result: Value) : Deferred<Value>;
+		resolve(result: Value): Deferred<Value>;
 		/// Reject the promise.
-		reject(err: Rejection) : Deferred<Value>;
+		reject(err: Rejection): Deferred<Value>;
 
 		done(f: (v: Value) => void ): Deferred<Value>;
 		fail(f: (err: Rejection) => void ): Deferred<Value>;
@@ -196,7 +196,7 @@ module P {
 	}
 
 	/**
-		Creates a promise that gets resolved at the time all the promises in the argument list get resolved.
+		Creates a promise that gets resolved when all the promises in the argument list get resolved.
 		As soon one of the arguments gets rejected, the resulting promise gets rejected.
 		If no promises were provided, the resulting promise is immediately resolved.
 	*/
@@ -217,11 +217,12 @@ module P {
 				.done(v => {
 					results[i] = v;
 					++resolved;
-					if (resolved === promises.length && allDone.status != Status.Rejected)
+					if (resolved === promises.length && allDone.status !== Status.Rejected)
 						allDone.resolve(results);
 				} )
 				.fail(e => {
-					allDone.reject(new Error("when: one or more promises were rejected"));
+					if (allDone.status !== Status.Rejected)
+						allDone.reject(new Error("when: one or more promises were rejected"));
 				} );
 		} );
 
@@ -236,7 +237,7 @@ module P {
 
 	class PromiseI<Value> implements Promise<Value>
 	{
-		constructor(private deferred: DeferredI<Value>)
+		constructor(public deferred: DeferredI<Value>)
 		{ }
 
 		get status(): Status { return this.deferred.status; }
@@ -300,7 +301,7 @@ module P {
 			return this._error;
 		}
 
-		then(f: (v: Value) => any) : Promise<any>
+		then(f: (v: Value) => any): Promise<any>
 		{
 			var d = defer<T2>();
 
@@ -315,7 +316,7 @@ module P {
 					if (promiseOrValue instanceof PromiseI)
 					{
 						var p = <Promise> promiseOrValue;
-							p.done(v2 => d.resolve(v2))
+						p.done(v2 => d.resolve(v2))
 							.fail(err => d.reject(err));
 						return p;
 					}
@@ -397,5 +398,88 @@ module P {
 			this._resolved = _ => { };
 			this._rejected = _ => { };
 		}
+	}
+
+	/**
+		Promise Generators and Iterators.
+	*/
+
+	export interface Generator<E>
+	{
+		(): Iterator<E>;
+	}
+
+	export interface Iterator<E>
+	{
+		advance(): Promise<bool>;
+		current: E;
+	}
+
+	export function generator<E>(g: () => () => Promise<E>): Generator<E>
+	{
+		return () => iterator(g());
+	};
+
+	export function iterator<E>(f: () => Promise<E>): Iterator<E>
+	{
+		return new IteratorI<E>(f);
+	}
+
+	class IteratorI<E> implements Iterator<E>
+	{
+		current: E = undefined;
+
+		constructor(private f: () => Promise<E>)
+		{ }
+
+		advance() : Promise<bool>
+		{
+			var res = this.f();
+			return res.then(value =>
+			{
+				if (isUndefined(value))
+					return false;
+
+				this.current = value;
+				return true;
+			} );
+		}
+	}
+
+	/**
+		Iterator functions.
+	*/
+
+	export function each<E>(gen: Generator<E>, f: (e: E) => void ): Promise<{}>
+	{
+		var d = defer();
+		eachCore(d, gen(), f);
+		return d.promise();
+	}
+
+	function eachCore<E>(fin: Deferred<{}>, it: Iterator<E>, f: (e: E) => void ) : void
+	{
+		it.advance()
+			.done(hasValue =>
+			{
+				if (!hasValue)
+				{
+					fin.resolve({});
+					return;
+				}
+
+				f(it.current)
+				eachCore(fin, it, f);
+			} )
+			.fail(err => fin.reject(err));
+	}
+	
+	/**
+		std
+	*/
+
+	export function isUndefined(v)
+	{
+		return typeof v === 'undefined';
 	}
 }
