@@ -107,12 +107,6 @@ When multiple handlers of the same kind are registered, they are called in their
 - Progress notifications anyone?
 - Exception handling.
 
-### Roadmap
-
-I build this Promise implementation because I am planning a fairly large TypeScript project that requires a lot of asynchronous coordination. So I will try to push this forward over the next few weeks and will probably extend it beyond what existing Promise implementations have to offer. 
-
-But of course, the ultimate feature limiter will always be simplicitly.
-
 ### Design & Implementation Details
 
 I've decided to make it a bit harder to compose deferreds by not adding the composition methods to the `Deferred<Value>` interface. This makes the implementation simpler and has the additional advantage that implementors need to think and explicitly call `promise()` before they can start composing.
