@@ -1,6 +1,5 @@
 /bin/
 /obj/
-/Scripts/
 /promise_all.*
 /*.user
 /*.nupkg
