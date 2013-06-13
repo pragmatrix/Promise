@@ -4,3 +4,4 @@
 /promise_all.*
 /*.user
 /*.nupkg
+/*.suo
