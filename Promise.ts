@@ -19,7 +19,7 @@ module P {
 		Converts a value to a resolved promise.
 	*/
 
-	export function resolve<Value>(v: Value = {}): Promise<Value>
+	export function resolve<Value>(v: Value): Promise<Value>
 	{
 		return defer<Value>().resolve(v).promise();
 	}
@@ -48,10 +48,10 @@ module P {
 		seed: Seed)
 		: Promise<Element[]>
 	{
-		var d = defer<Partial[]>();
-		var elements: Element[] = [];
+		var d = defer<Element[]>();
+		var elements: Element[] = new Array<Element>();
 
-		unfoldCore(elements, d, unspool, seed)
+		unfoldCore<Seed, Element>(elements, d, unspool, seed)
 
 		return d.promise();
 	}
@@ -123,7 +123,7 @@ module P {
 		Both Promise<T> and Deferred<T> share these properties.
 	*/
 
-	interface PromiseState<Value>
+	export interface PromiseState<Value>
 	{
 		/// The current status of the promise.
 		status: Status;
@@ -201,7 +201,7 @@ module P {
 		If no promises were provided, the resulting promise is immediately resolved.
 	*/
 
-	export function when(...promises: Promise[]): Promise<any[]>
+	export function when(...promises: Promise<any>[]): Promise<any[]>
 	{
 		var allDone = defer<any[]>();
 		if (!promises.length) {
@@ -303,7 +303,7 @@ module P {
 
 		then(f: (v: Value) => any): Promise<any>
 		{
-			var d = defer<T2>();
+			var d = defer<Value>();
 
 			this
 				.done(v =>
