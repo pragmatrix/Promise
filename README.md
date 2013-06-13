@@ -4,7 +4,7 @@ Promises are used to structure asynchronous programs and to avoid callback hell.
 
 ### Installing Promise.ts
 
-Assuming that you are using Visual Studio, have [TypeScript 0.9 alpha](https://typescript.codeplex.com/releases/view/105503) installed, and [target ES5](https://github.com/pragmatrix/Promise/blob/master/Promise.csproj#L70):
+Assuming that you are using Visual Studio, have [TypeScript 0.9 beta](https://typescript.codeplex.com/releases/view/105503) installed, and [target ES5](https://github.com/pragmatrix/Promise/blob/master/Promise.csproj#L70):
 
 - [install the nuget package](http://nuget.org/packages/Promise.TypeScript/).
 
