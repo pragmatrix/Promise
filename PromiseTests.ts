@@ -76,7 +76,7 @@ module PromiseTests {
 		d.reject({ message: "na" });
 	} );
 
-	test("when already rejected rejected: fail", () =>
+	test("when already rejected: fail", () =>
 	{
 		var d = defer<number>();
 		d.reject({ message: "na" });
@@ -85,7 +85,7 @@ module PromiseTests {
 		} );
 	} );
 
-	test("when rejected, call always", () =>
+	test("when rejected, always call", () =>
 	{
 		var d = defer<number>();
 		d.reject({ message: "na" });
@@ -94,7 +94,7 @@ module PromiseTests {
 		} );
 	} );
 
-	test("when resolved, call always", () =>
+	test("when resolved, always call", () =>
 	{
 		var d = defer<number>();
 		d.resolve(10);
@@ -105,7 +105,7 @@ module PromiseTests {
 
 	// values and errors
 
-	test("actually passes the value to the done", () =>
+	test("actually passes the value to done", () =>
 	{
 		var d = defer<number>();
 		d.done((value) => {
@@ -272,7 +272,7 @@ module PromiseTests {
 		expect(3);
 
 		var d = defer<number>();
-		var d2 = defer<bool>();
+		var d2 = defer<boolean>();
 
 		var p = when(d.promise(), d2.promise());
 		p.done(v =>
@@ -289,7 +289,7 @@ module PromiseTests {
 	test("when: first fails, when fails", () =>
 	{
 		var d = defer<number>();
-		var d2 = defer<bool>();
+		var d2 = defer<boolean>();
 
 		var p = when(d.promise(), d2.promise());
 		p.fail(err =>
@@ -303,7 +303,7 @@ module PromiseTests {
 	test("when: second fails, when fails", () =>
 	{
 		var d = defer<number>();
-		var d2 = defer<bool>();
+		var d2 = defer<boolean>();
 
 		var p = when(d.promise(), d2.promise());
 		p.fail(err =>
@@ -317,7 +317,7 @@ module PromiseTests {
 	test("when: both fail, when fails", () =>
 	{
 		var d = defer<number>();
-		var d2 = defer<bool>();
+		var d2 = defer<boolean>();
 
 		var p = when(d.promise(), d2.promise());
 		p.fail(err =>

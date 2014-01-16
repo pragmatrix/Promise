@@ -143,11 +143,6 @@ module P {
 		same order.
 	*/
 
-	interface TrickTheCompilerToAcceptMultipleThenOverloadsBelow
-	{
-		then<T2>(f): Promise<T2>;
-	}
-
 	export interface Promise<Value> extends PromiseState<Value>
 	{
 		/**
@@ -248,10 +243,12 @@ module P {
 			this.deferred.done(f);
 			return this;
 		}
+
 		fail(f: (err: Rejection) => void ): Promise<Value> {
 			this.deferred.fail(f);
 			return this;
 		}
+
 		always(f: (v?: Value, err?: Rejection) => void ): Promise<Value> {
 			this.deferred.always(f);
 			return this;
@@ -411,7 +408,7 @@ module P {
 
 	export interface Iterator<E>
 	{
-		advance(): Promise<bool>;
+		advance(): Promise<boolean>;
 		current: E;
 	}
 
@@ -432,7 +429,7 @@ module P {
 		constructor(private f: () => Promise<E>)
 		{ }
 
-		advance() : Promise<bool>
+		advance() : Promise<boolean>
 		{
 			var res = this.f();
 			return res.then(value =>
