@@ -4,3 +4,5 @@
 /*.user
 /*.nupkg
 /*.suo
+/packages/
+!/packages/repositories.config
