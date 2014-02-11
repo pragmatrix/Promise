@@ -87,7 +87,7 @@ module P {
 				if (!result.next)
 					deferred.resolve(elements);
 				else
-					unfoldCore(elements, deferred, unspool, result.next);
+					unfoldCore<Seed, Element>(elements, deferred, unspool, result.next);
 			} )
 			.fail(e =>
 			{
@@ -298,9 +298,9 @@ module P {
 			return this._error;
 		}
 
-		then(f: (v: Value) => any): Promise<any>
+		then<Result>(f: (v: Value) => any): Promise<Result>
 		{
-			var d = defer<Value>();
+			var d = defer<Result>();
 
 			this
 				.done(v =>
@@ -312,7 +312,7 @@ module P {
 					// implementations here.
 					if (promiseOrValue instanceof PromiseI)
 					{
-						var p = <Promise> promiseOrValue;
+						var p = <Promise<Result>> promiseOrValue;
 						p.done(v2 => d.resolve(v2))
 							.fail(err => d.reject(err));
 						return p;
@@ -414,7 +414,7 @@ module P {
 
 	export function generator<E>(g: () => () => Promise<E>): Generator<E>
 	{
-		return () => iterator(g());
+		return () => iterator<E>(g());
 	};
 
 	export function iterator<E>(f: () => Promise<E>): Iterator<E>
@@ -466,7 +466,7 @@ module P {
 				}
 
 				f(it.current)
-				eachCore(fin, it, f);
+				eachCore<E>(fin, it, f);
 			} )
 			.fail(err => fin.reject(err));
 	}
