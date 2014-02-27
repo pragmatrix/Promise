@@ -4,7 +4,7 @@ Promises are used to structure asynchronous programs and to avoid callback hell.
 
 ### Installing Promise.ts
 
-Assuming that you are using Visual Studio, have [TypeScript 0.9 beta](https://typescript.codeplex.com/releases/view/105503) installed, and [target ES5](https://github.com/pragmatrix/Promise/blob/master/Promise.csproj#L70):
+Assuming that you are using Visual Studio, have [TypeScript 1.0rc](http://www.typescriptlang.org) installed:
 
 - [install the nuget package](http://nuget.org/packages/Promise.TypeScript/).
 
@@ -12,7 +12,7 @@ Assuming that you are using Visual Studio, have [TypeScript 0.9 beta](https://ty
 
 		/// <reference path="Scripts/Promise.ts"/>
 
-- and in your module:
+- and to your module:
 
 		export var defer = P.defer;
 		export var when = P.when;
@@ -58,8 +58,6 @@ The promise returned by `readBlob()` can now be composed with other functions th
 	readBlob(blob).then(bytes => bytes.reverse());
 
 returns a promise that represents the read operation of the block and the reversing of its binary content. The returned promise gets resolved as soon the conversion function finishes.
-
-Note that the TypeScript 0.9 alpha compiler may not properly inference the type of returned value and so resorts to `Promise<any>`. A workaround is to return a `P.resolved(value)` or to type annotate the returned promise.
 
 Starting parallel processes is also straight forward:
 
@@ -115,7 +113,7 @@ I've decided against all exception handling for now, because I have never used p
 
 ### License
 
-Copyright (c) 2012, Armin Sander All rights reserved.
+Copyright (c) 2014, Armin Sander All rights reserved.
 
 - Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
