@@ -256,7 +256,7 @@ module P {
 
 		then<T2>(f: (v: Value) => any): Promise<T2>
 		{
-			return this.deferred.then(f);
+			return this.deferred.then<any>(f);
 		}
 	}
 
