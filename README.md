@@ -45,7 +45,7 @@ For example:
 		return d.promise();
 	}
 
-The function above starts the reading operation and returns a promise that represents the the future result.
+The function above starts the reading operation and returns a promise that represents the future result.
 
 #### Composing Promises
 
